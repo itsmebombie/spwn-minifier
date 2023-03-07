@@ -106,8 +106,6 @@ minify = (input) {
         }
     }
 
-    $.print(variables)
-
     return output.join("")
 }
 $.print(minify('
@@ -119,4 +117,4 @@ hello = (n) {
 hello_string = hello(69)
 
 $.print(hello_string)
-'))
+')) // output: v0=(n){v2="!";return"Hello, World"+v2*n};v1=v0(69);$.print(v1);
