@@ -1,0 +1,122 @@
+minify = (input) {
+    alpha = @array("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    naming = alpha + @array("1234567890_")
+    symbols = @array("-+=<>{}()[]:;!@#$%^&|*\"'\\.,/")
+    whitespace = @array(" \n")
+    keywords = "if else while for in match let throw import extract return as impl true false null type self".split(" ") // i dont fucking care, they're all keywords for me
+    lexer = (string) {
+        let tokens = []
+        let context = ""
+        let last_context = "" // what the fuck
+        let in_string = "" // can be either " or ' (or empty)
+        
+        for char in 0..string.length {
+            let last_char = tokens[tokens.length-1][tokens[tokens.length-1].length-1] if tokens.length > 0 && tokens[tokens.length-1].length > 0 else "" // the token fuckery is basically: if the last token is ending in a value from the namings array.
+            let character = string[char]
+
+            if in_string != "" {
+                if character == in_string && (string[char-1] != "\\" || (string[char-1] == "\\" && string[char-2] == "\\")) { // to do: detect if a backslash is before another backslash
+                    in_string = ""
+                }
+                tokens.push(character)
+                continue
+            } 
+
+            if character in naming {
+                if char <= string.length && character in naming {
+                    context += character
+                }
+                if char + 1 == string.length || !(string[char + 1] in naming) {  
+                    if tokens.length > 0 && context in keywords && last_char in naming {
+                        if !(last_context in keywords) {
+                            tokens.push(" ")
+                        }
+                    }
+
+                    tokens.push(context)
+                    last_context = context
+                    context = ""
+                }
+            } else if character in whitespace {
+                match character {
+                    =="\n": () {
+                        if !(last_char in " {([;,") {
+                            tokens.push(";")
+                        }
+                    } (),
+                    ==" ": () {
+                        if last_context in keywords && !(last_char in symbols) && !(string[char+1] in symbols) {
+                            tokens.push(" ")
+                        }
+                    } ()
+                }
+            } else if character in symbols {
+                if char <= string.length && character in symbols {
+                    in_string = character if character in "\"'" else ""
+
+                    if character in "})];," && tokens[tokens.length-1] == ";" {
+                        tokens[tokens.length-1] = ""
+                    }
+
+                    tokens.push(character)
+                }
+            }
+        }
+        return tokens
+    }
+
+    let tokens = lexer(input)
+
+    let variables = {}
+    let last_token = ""
+
+    for i in 0..tokens.length {
+        token = tokens[i]
+        next_token = tokens[i+1] if tokens.length > i+1 else ""
+
+        if tokens.length >= i {
+            if token.length > 0 && token[0] in alpha + ["_"] {
+                if !(token in variables.keys()) {
+                    if last_token == " " && (tokens[i-2] if i-2 > 0 else "") == "let" && !(token in keywords) {
+                        // pretty sure it's a variable
+                        variables.set(token, 1)
+                    } else if last_token != "@" && next_token == "=" && !(token in keywords) && (tokens[i+2] if tokens.length > i-1 else "") != "=" && !(token in keywords) {
+                        // probably a constant, we're taking our chances here (i think)
+                        variables.set(token, 1)
+                    }
+                } else {
+                    variables[token]++
+                }
+            }
+        }
+        
+        last_token = token
+    }
+
+    get_name = (n: @number) {
+        return "v" + @string(n)
+    }
+
+    let output = tokens
+    variables = variables.items().sort((a,b) => a[1] > b[1])
+
+    for i in 0..variables.length {
+        for j in tokens.index_all(variables[i][0]) {
+            output[j] = get_name(i)
+        }
+    }
+
+    $.print(variables)
+
+    return output.join("")
+}
+$.print(minify('
+hello = (n) {
+    exclamation = "!"
+    return "Hello, World" + exclamation * n
+}
+
+hello_string = hello(69)
+
+$.print(hello_string)
+'))
