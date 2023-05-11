@@ -1,6 +1,9 @@
+# dont use this!!!
+
 # spwn-minifier
 idk https://tryitands.ee 🥸🤡
+but this is not polished at all so dont use this
 
-this is not polished at all btw so idk 
-also most things such as comment removal, minifying for loop variables, minifying macro variables and checking for strings when minifying variable names doesnt work so you're gonna have to do it yourself 🤣🤣
-good luck if you try to understand any of the code btw
+also comment removal, minifying some variables and checking for strings when minifying variable names don't really work
+
+for those who want to modify this, good luck understanding the code lmao
